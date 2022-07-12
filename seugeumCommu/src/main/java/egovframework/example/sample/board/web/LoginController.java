@@ -91,7 +91,7 @@ public class LoginController {
 
 	@RequestMapping(value = "/joins.do", method = RequestMethod.POST)
 	public String mainJoin(@ModelAttribute("boardVO") BoardVO boardVO, @RequestParam("id") String id,
-			@RequestParam("name") String name, @RequestParam("birth") String birth, ModelMap model,
+			@RequestParam("name") String name, @RequestParam("birth") String birth, @RequestParam("nickname") String nickname, ModelMap model,
 			HttpServletRequest request) throws Exception {
 
 		List list = loginService.selectInnCheck(boardVO);
@@ -103,7 +103,9 @@ public class LoginController {
 		System.out.println(namee);
 		System.out.println(births);
 		String jCheck = loginService.selectjCheck(id);
-
+		int nicc = loginService.selectMemberNicCheck(nickname);
+		
+		
 		if (!name.equals(namee)) {
 			model.addAttribute("msg", "사용자의 이름이 틀렸습니다.");
 
@@ -115,7 +117,13 @@ public class LoginController {
 
 			return "/login/join";
 
-		} else if (jCheck == null) {
+		} else if (nicc == 1) {
+
+	         model.addAttribute("msg", "중복된 닉네임입니다.");
+	         
+	         return "/login/join";
+	         
+	     } else if (jCheck == null) {
 			System.out.println(namee + ", " + births);
 			loginService.insertJoin(boardVO);
 			model.addAttribute("msg", "가입을 환영 합니다 ^_^");

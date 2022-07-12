@@ -111,7 +111,7 @@
 						alert("이미 회원가입한 학번입니다.");
 					}
 				},
-				error: function() {
+				error: function() { 
 					 alert("오류발생");
 				}
 				
