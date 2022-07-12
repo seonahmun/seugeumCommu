@@ -201,6 +201,7 @@
          WHERE 1=1
          AND boardId = #{boardId}
       )C
+      ORDER BY C.IDX DESC
       
    </select>
    
@@ -229,6 +230,7 @@
          )C
       WHERE 1=1 
       AND groupid = #{groupId}
+      ORDER BY C.IDX DESC
       
    </select>
 </mapper>
