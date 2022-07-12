@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+   namespace="egovframework.example.sample.board.service.impl.BoardMapper">
+
+   <resultMap id="board"
+      type="egovframework.example.sample.board.service.BoardVO">
+      <result property="idx" column="idx" />
+      <result property="title" column="title" />
+      <result property="contents" column="contents" />
+      <result property="writer" column="writer" />
+      <result property="indate" column="indate" />
+      <result property="boardId" column="boardId" />
+      <result property="nickname" column="nickname"/>
+      <result property="boardId" column="boardId"/>
+      <result property="groupId" column="groupId"/>
+      <!-- <result property="firstIndex" column="firstIndex" />
+      <result property="recordCountPerPage" column="recordCountPerPage" /> -->
+   </resultMap>
+
+   <!-- 공통 -->
+   
+   <select id="selectBoardListTotCnt" parameterType="boardVO" resultType="int">
+
+      SELECT COUNT(*) totcnt
+      FROM board A
+      WHERE 1=1 AND A.BOARDID = #{boardId}
+      <if test="searchKeyword != null and searchKeyword != ''"> 
+         AND (A.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')) 
+         OR A.CONTENTS LIKE CONCAT('%', #{searchKeyword}, '%')
+      </if>
+      
+   </select>
+   
+   <select id="selectBoardList" parameterType="boardVO" resultType="egovMap">
+
+      SELECT A.IDX as idx 
+      , A.TITLE as title 
+      , A.CONTENTS as contents 
+      , IFNULL(A.COUNT,0) as count 
+      , A.WRITER as writer 
+      , A.INDATE as indate 
+      , B.NAME as name
+      , (SELECT COUNT(*) FROM board_reply X WHERE X.IDX=A.IDX) AS reply
+      FROM board A
+      LEFT JOIN user B ON A.WRITER = B.ID
+      WHERE 1=1 
+      AND BOARDID = #{boardId}
+      <if test="searchKeyword != null and searchKeyword != ''">
+         AND (A.TITLE LIKE CONCAT('%', #{searchKeyword}, '%'))
+         OR A.CONTENTS LIKE CONCAT('%', #{searchKeyword}, '%')
+      </if>
+      ORDER BY A.IDX DESC
+      LIMIT #{firstIndex}, #{recordCountPerPage}
+      
+   </select>
+
+   <insert id="insertBoard" parameterType="boardVO">
+
+      INSERT INTO board
+      ( IDX
+      , TITLE
+      , CONTENTS
+      , COUNT
+      , WRITER , INDATE , BOARDID )
+      VALUES ( NULL
+      , #{title, jdbcType=VARCHAR}
+      , #{contents, jdbcType=VARCHAR}
+      , #{count, jdbcType=VARCHAR}
+      , #{writer, jdbcType=VARCHAR} , SYSDATE() , #{boardId} )
+
+   </insert>
+
+   <update id="updateBoard">
+
+      UPDATE board 
+      SET TITLE=#{title} 
+      , CONTENTS=#{contents, jdbcType=VARCHAR}
+      WHERE IDX=#{idx}
+      
+   </update>
+
+   <delete id="deleteBoard">
+
+      DELETE 
+      FROM board
+      WHERE IDX=#{idx}
+
+   </delete>
+
+   <!-- 상세페이지 select -->
+   <select id="selectBoard" resultMap="board">
+
+      SELECT
+      A.IDX as idx 
+      , A.TITLE as title 
+      , A.CONTENTS as contents 
+      , A.COUNT as count
+      , A.WRITER as writer 
+      , A.INDATE as indate 
+      , B.NAME as name
+      , B.NICKNAME as nickname
+      FROM board A LEFT JOIN user B ON A.WRITER = B.ID
+      WHERE 1=1
+      AND A.IDX=#{idx, jdbcType=VARCHAR}
+      
+   </select>   
+
+   <insert id="insertReply" parameterType="boardVO">
+
+      INSERT INTO board_reply
+      ( IDX
+      , SEQ
+      , REPLY
+      , WRITER
+      , INDATE
+      , BOARDID )
+      VALUES (#{idx}
+      , (SELECT IFNULL(MAX(X.SEQ)+1,1) FROM board_reply X WHERE X.IDX=#{idx})
+      , #{reply, jdbcType=VARCHAR}
+      , #{writer, jdbcType=VARCHAR}
+      , SYSDATE()
+      , #{boardId} )
+
+   </insert>
+
+   <select id="selectReplyList" parameterType="boardVO" resultType="egovMap">
+
+      SELECT
+      A.IDX as idx
+      , A.SEQ as seq
+      , A.REPLY as reply
+      , A.WRITER as writer
+      , A.INDATE as indate
+      , B.NAME as name
+      , B.NICKNAME as nickname
+      FROM board_reply A
+      LEFT JOIN user B ON A.WRITER = B.ID
+      WHERE 1=1
+      AND IDX = #{idx}
+      ORDER BY A.SEQ DESC
+
+   </select>
+
+   <update id="updateBoardCount"> 
+   
+      UPDATE board
+      SET COUNT = IFNULL(COUNT, 0)+1
+      WHERE IDX=#{idx}
+      
+   </update>
+   
+   <!-- 선아님 -->
+
+   <select id="selectBoardList2" parameterType="boardVO" resultType="egovMap">
+
+      SELECT A.IDX AS idx
+      ,A.TITLE AS title
+      ,A.CONTENTS AS contents
+      ,IFNULL(A.COUNT,0) AS count
+      ,A.WRITER AS writer
+      ,A.INDATE AS indate
+      ,A.BOARDID AS boardId
+      ,B.NICKNAME AS nickName
+      ,B.GROUPID AS groupId
+      ,(SELECT COUNT(*) FROM board_reply X WHERE X.idx=A.idx) AS reply
+      FROM board A
+      LEFT JOIN user B ON A.WRITER = B.ID
+      WHERE 1=1
+      AND A.BOARDID = #{boardId}
+      AND B.GROUPID = #{groupId}
+        <if test="searchKeyword != null and searchKeyword != ''">
+           AND(A.TITLE LIKE CONCAT('%',#{searchKeyword},'%'))
+           OR A.CONTENTS LIKE CONCAT('%',#{searchKeyword},'%')
+        </if>
+        ORDER BY A.IDX DESC
+        LIMIT #{firstIndex}, #{recordCountPerPage}
+      
+   </select>
+   
+   <!-- 승수님 -->
+   <!-- 메인페이지 공지사항 조회  -->
+   <select id="selectBoardMain" parameterType="boardVO" resultType="egovMap">
+
+      SELECT C.IDX AS idx
+      , C.TITLE AS title
+      , IFNULL(C.COUNT,0) AS count
+      , C.NAME AS writer
+      , C.INDATE AS indate
+      FROM(      
+         SELECT
+            A.IDX as idx 
+         , A.TITLE as title  
+         , IFNULL(A.COUNT,0) AS count
+         , A.WRITER as writer 
+         , A.INDATE as indate 
+         , A.boardId as boardId
+         , B.NAME AS name
+         FROM board A
+         LEFT JOIN user B ON A.writer = B.id
+         WHERE 1=1
+         AND boardId = #{boardId}
+      )C
+      
+   </select>
+   
+   <!-- 메인페이지 자유게시판 그룹별 조회  -->
+   <select id="selectBoardMain2" parameterType="boardVO" resultType="egovMap">
+
+   SELECT C.IDX AS idx
+   , C.TITLE AS title
+   , IFNULL(C.COUNT,0) AS count
+   , C.NICKNAME AS writer
+   , C.INDATE AS indate  
+         <!-- , c.groupid AS groupid   -->
+      FROM (
+         SELECT 
+         A.IDX as idx 
+         , A.TITLE as title  
+         , IFNULL(A.COUNT,0) AS count
+         , A.WRITER as writer 
+         , A.INDATE as indate
+         , B.GROUPID as groupid
+         , B.NICKNAME as nickname   
+         FROM board A 
+         LEFT JOIN user B ON A.writer = B.id
+         WHERE 1=1 
+         AND boardId = #{boardId}
+         )C
+      WHERE 1=1 
+      AND groupid = #{groupId}
+      
+   </select>
+</mapper>
