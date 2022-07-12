@@ -94,7 +94,7 @@
 								</tr>
 							</thead>
 							<tbody>
-							  <c:forEach var="result1" begin="0" end="4" items="${resultList1}" varStatus="status">
+							  <c:forEach var="result1" items="${resultList1}" varStatus="status">
 								<tr>
 									<td><a href="javascript:view('${result1.idx}');"><c:out value="${result1.idx}" /></a></td>
 									<td><a href="javascript:view('${result1.idx}');"><c:out value="${result1.title}" /> </a></td>
@@ -121,7 +121,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<c:forEach var="result2" begin="0" end="4" items="${resultList2}" varStatus="status">
+							<c:forEach var="result2" items="${resultList2}" varStatus="status">
 								<tr>
 									<td><a href="javascript:view2('${result2.idx}');"><c:out value="${result2.idx}" /></a></td>
 									<td><a href="javascript:view2('${result2.idx}');"><c:out value="${result2.title}" /> </a></td>
