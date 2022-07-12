@@ -113,10 +113,10 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th>게시물번호</th>
-								<th>제목</th>
-								<th>조회수</th>
-								<th>등록자</th>
+								<th width="93px">게시물번호</th>
+								<th width="170px">제목</th>
+								<th width="60px">조회수</th>
+								<th width="60px">등록자</th>
 								<th>등록일</th>
 							</tr>
 						</thead>
